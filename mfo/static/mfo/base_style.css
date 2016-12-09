@@ -1,0 +1,94 @@
+body {
+    background: #eeeeee; /* For browsers that do not support gradients */
+    min-height: 100vh;
+    color: black;
+}
+
+table {
+    background-color: white !important;
+}
+
+thead{
+    background: white; /* For browsers that do not support gradients */
+    color: white;
+}
+
+h2{
+    font-family: Futura!important;
+    font-weight: bolder !important;
+}
+
+#jumbo {
+    background: lightgrey; /* For browsers that do not support gradients */
+    color: black;
+    font-family: Futura!important;
+}
+
+#clear-jumbo{
+    background: rgba(240, 240, 240, 0);
+}
+
+#search-box {
+    font-family: Futura!important;
+    font-weight: normal !important;
+}
+
+#search-table {
+    word-wrap:break-word;
+    background: transparent;
+    color: black;
+    font-family: Futura!important;
+}
+
+#heading-containter {
+    padding-left: 40px;
+    padding-right: 40px;
+    color: black;
+    font-family: Futura !important;
+}
+
+#pre-custom {
+    max-height: 400px;
+    overflow: scroll;
+    background-color: transparent;
+    color: black;
+}
+
+.navbar-custom div.navbar-collapse
+{
+    border-top:none;
+    box-shadow:none;
+}
+
+.navbar-custom{
+    background-color: darkgray;
+}
+
+.navbar-custom .navbar-nav {
+    font-size: 150%;
+}
+
+.navbar-custom .navbar-nav > li > a {
+    font-family: Futura, sans-serif;
+    color: white;
+    padding-bottom: 20px;
+    padding-top: 20px;
+}
+
+.navbar-custom .navbar-brand {
+    color: white;
+    font-size: 150%;
+    max-width: 250px;
+    overflow: visible;
+    padding-top: 3px;
+}
+
+.navbar-custom .navbar-brand:hover,
+.navbar-custom .navbar-brand:focus {
+    color: white;
+}
+
+.navbar-custom .navbar-nav > li > a:hover,
+.navbar-custom .navbar-nav > li > a:focus {
+    color: grey;
+}
