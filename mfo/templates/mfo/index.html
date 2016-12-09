@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Travel Diff</title>
+    <title>VideoOrganiser</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -40,3 +40,23 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
+
+<div class="container-fluid">
+    <div class="jumbotron">
+        <p><span class="glyphicon glyphicon-folder-open"></span> {{ current_dir }}</p>
+        <ul class="list-group">
+            {% for child in child_dirs %}
+                <li class="list-group-item">
+                    <p>
+                        <a href="?new_dir={{ child.1 }}"><span class="glyphicon glyphicon-folder-close"></span>
+                            {{ child.0 }}</a>
+                    </p>
+                </li>
+            {% endfor %}
+            {% for child in child_files %}
+                <li class="list-group-item"><p>
+                    <span class="glyphicon glyphicon-file"></span> {{ child.0 }}</p></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

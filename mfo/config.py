@@ -1,3 +1,3 @@
 import os
 
-base_dir = 'Macintosh HD/Users/ryanrushton/Movies'
+base_dir = '/Users/ryanrushton/Movies'
