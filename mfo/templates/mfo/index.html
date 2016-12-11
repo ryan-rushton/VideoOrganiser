@@ -12,10 +12,11 @@
 
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     {% load static %}
 
     <link href="{% static 'mfo/base_style.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'scripts/index.js' %}" type="text/javascript"></script>
 
 </head>
 <body data-spy="spyscroll">
@@ -40,23 +41,6 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
-
 <div class="container-fluid">
-    <div class="jumbotron">
-        <p><span class="glyphicon glyphicon-folder-open"></span> {{ current_dir }}</p>
-        <ul class="list-group">
-            {% for child in child_dirs %}
-                <li class="list-group-item">
-                    <p>
-                        <a href="?new_dir={{ child.1 }}"><span class="glyphicon glyphicon-folder-close"></span>
-                            {{ child.0 }}</a>
-                    </p>
-                </li>
-            {% endfor %}
-            {% for child in child_files %}
-                <li class="list-group-item"><p>
-                    <span class="glyphicon glyphicon-file"></span> {{ child.0 }}</p></li>
-            {% endfor %}
-        </ul>
-    </div>
+    <div class="jumbotron" id="file_system_jumbo"></div>
 </div>
