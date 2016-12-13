@@ -1,5 +1,6 @@
-from unittest import TestCase
-from .filename_handler import get_file_details
+from django.test import TestCase
+from .file_managers import get_file_details, check_extension
+from .config import ALLOWED_EXTENSIONS
 
 
 class TestFileHandler(TestCase):
@@ -12,3 +13,9 @@ class TestFileHandler(TestCase):
         self.assertEqual(get_file_details(filename2), None)
         self.assertEqual(get_file_details(filename3), None)
         self.assertEqual(get_file_details(filename4), ('some.tv.show', 'S01', 'E01'))
+
+
+class TestCheckExtension(TestCase):
+    def test_check_extension(self):
+        for ext in ALLOWED_EXTENSIONS:
+            self.assertTrue(check_extension('blah.' + ext))

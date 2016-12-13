@@ -1,7 +1,21 @@
 import re
 import shutil
 import os
+from multiprocessing import Process
 from .models import TvShow
+from .config import BASE_DIR, WATCHED_DIR, IS_WATCHING, ALLOWED_EXTENSIONS
+
+
+def check_extension(media_file):
+    """
+    Check to see if a file has an aloud extension
+    :param media_file: string
+    :return: Bool
+    """
+    tmp = media_file.split('.')
+    if len(tmp) > 0 and tmp[-1] in ALLOWED_EXTENSIONS:
+            return True
+    return False
 
 
 def get_file_details(filename):
@@ -60,3 +74,27 @@ def move_tv_season(media_file_path):
     # return the media file path in the case of a movie
     else:
         return media_file_path
+
+
+class Watcher(Process):
+    """
+    This class extends the Process class and watches a folder for new media files
+    """
+    # TODO Finish this class off
+
+    def __init__(self, q):
+        Process.__init__(self)
+        self.watched_dir = WATCHED_DIR
+        self.q = q
+        self.running = True
+
+    def run(self):
+        while self.running:
+            media_files = os.listdir(self.watched_dir)
+            if len(media_files) > 0:
+                for item in media_files:
+                    tmp = move_tv_season(os.path.join(self.watched_dir, item))
+
+            if not self.q.empty():
+                running = False
+

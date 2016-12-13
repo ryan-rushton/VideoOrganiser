@@ -1,7 +1,7 @@
 from django.shortcuts import render
 import os
 from django.http import JsonResponse
-from .config import base_dir
+from .config import BASE_DIR
 
 # Create your views here.
 
@@ -11,8 +11,8 @@ def load_file_system(request):
     current_dir = request.GET.get('new_dir')
     child_dirs = []
     child_files = []
-    if current_dir is None or current_dir == 'undefined' or current_dir == base_dir:
-        current_dir = base_dir
+    if current_dir is None or current_dir == 'undefined' or current_dir == BASE_DIR:
+        current_dir = BASE_DIR
     else:
         child_dirs.append(('..', os.path.split(current_dir)[0]))
     tmp = os.listdir(current_dir)
