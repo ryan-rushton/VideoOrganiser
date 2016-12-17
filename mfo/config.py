@@ -1,6 +1,6 @@
 
 # Base dir where out media will be stored
-BASE_DIR = '/Users/ryanrushton/Movies'
+BASE_DIR_FILES = '/Users/ryanrushton/Movies'
 
 # The dir that the VideoOrganiser watches for new files
 WATCHED_DIR = '/Users/ryanrushton/New\ Media'
