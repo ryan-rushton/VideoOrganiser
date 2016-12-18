@@ -2,4 +2,4 @@ from django.forms import Form, FileField, ClearableFileInput
 
 
 class UploadForm(Form):
-    uploaded_file = FileField(widget=ClearableFileInput(attrs={'multiple': True}))
+    uploaded_files = FileField(widget=ClearableFileInput(attrs={'multiple': True}))

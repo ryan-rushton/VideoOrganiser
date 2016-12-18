@@ -1,7 +1,8 @@
 from django.shortcuts import render
 import os
+from shutil import move
 from django.http import JsonResponse
-from .config import BASE_DIR_FILES, UPLOAD_DIR
+from .config import BASE_DIR_FILES, UPLOAD_DIR, WATCHED_DIR
 from .forms import UploadForm
 
 
@@ -16,10 +17,11 @@ def handle_uploaded_file(uploaded_files):
     :return: None
     """
     for f in uploaded_files:
+        print(f.name)
         with open(os.path.join(UPLOAD_DIR, f.name), 'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-    return None
+        move(os.path.join(UPLOAD_DIR, f.name), os.path.join(WATCHED_DIR, f.name))
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Create your views here.
@@ -61,10 +63,16 @@ def index(request):
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
+            print(request.FILES.getlist('uploaded_files'))
             handle_uploaded_file(request.FILES.getlist('uploaded_files'))
-
+        else:
+            print('form not valid')
     else:
         upload_form = UploadForm()
     return render(request, 'mfo/index.html', {
         'upload_form': upload_form
     })
+
+
+def map_genre(request):
+    return render(request, 'mfo/map_genre.html')

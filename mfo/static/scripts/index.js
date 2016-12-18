@@ -21,4 +21,4 @@ function get_file_system(current_dir){
     )
 }
 
-get_file_system();
+

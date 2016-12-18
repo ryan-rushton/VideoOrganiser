@@ -90,5 +90,7 @@ h2{
 
 .navbar-custom .navbar-nav > li > a:hover,
 .navbar-custom .navbar-nav > li > a:focus {
-    color: grey;
+    color: lightblue;
+    background-color: darkgray;
 }
+
