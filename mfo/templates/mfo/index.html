@@ -11,12 +11,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     {% load static %}
 
     <link href="{% static 'mfo/base_style.css' %}" rel="stylesheet" type="text/css">
     <script src="{% static 'scripts/index.js' %}" type="text/javascript"></script>
+    <script src="{% static 'scripts/bootstrap-uploadprogress.js' %}" type="text/javascript"> </script>
 
 </head>
 <body data-spy="spyscroll">
@@ -38,9 +39,44 @@
             <ul class="nav navbar-nav">
                 <li><a href="/" style="font-size: 200%">VideoOrganiser</a></li>
             </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li style="padding-top: 11px">
+                    <!-- Trigger the modal with a button -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Upload Media</button>
+                </li>
+            </ul>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Upload Media</h4>
+      </div>
+        <div class="modal-body">
+            <form id="upload_form" enctype="multipart/form-data" action="" method="post">
+                {% csrf_token %}
+                {{ upload_form }}
+                <input type="submit" id="upload_submit" style="margin-top: 10px" class="btn btn-default" value="Upload" />
+            </form>
+            <script>
+                $("#upload_form").uploadprogress({redirect_url: "/"})
+            </script>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+
+    </div>
+</div>
+
 <div class="container-fluid">
     <div class="jumbotron" id="file_system_jumbo"></div>
 </div>
