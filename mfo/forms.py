@@ -1,5 +1,5 @@
-from django.forms import Form, FileField
+from django.forms import Form, FileField, ClearableFileInput
 
 
 class UploadForm(Form):
-    uploaded_file = FileField()
+    uploaded_file = FileField(widget=ClearableFileInput(attrs={'multiple': True}))

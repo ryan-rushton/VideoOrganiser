@@ -1,15 +1,33 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 import os
 from django.http import JsonResponse
-from .config import BASE_DIR_FILES, WATCHED_DIR, UPLOAD_DIR
+from .config import BASE_DIR_FILES, UPLOAD_DIR
 from .forms import UploadForm
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Below are functions that are one off's for views or ajax calls
+
+
+def handle_uploaded_file(uploaded_files):
+    """
+    This is used to upload files to a folder that is being watched for changes.
+    :param f: file
+    :return: None
+    """
+    for f in uploaded_files:
+        with open(os.path.join(UPLOAD_DIR, f.name), 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+    return None
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Create your views here.
 
 
 def load_file_system(request):
     """
-    Loads the file system for the page.
+    Gets the file system structure for the index page.
     :param request: request object
     :return: response object
     """
@@ -34,23 +52,16 @@ def load_file_system(request):
     return JsonResponse(data)
 
 
-def handle_uploaded_file(f):
-    with open(os.path.join(UPLOAD_DIR, f.name), 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-    print("%s uploaded" % str(f))
-
-
 def index(request):
+    """
+    The main index view.
+    :param request: request object
+    :return: response object
+    """
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            print('form valid')
-            print(request.FILES['uploaded_file'])
-            handle_uploaded_file(request.FILES['uploaded_file'])
-
-        else:
-            print('form not valid')
+            handle_uploaded_file(request.FILES.getlist('uploaded_files'))
 
     else:
         upload_form = UploadForm()
