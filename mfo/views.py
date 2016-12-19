@@ -1,5 +1,7 @@
 from django.shortcuts import render
 import os
+import subprocess
+import sys
 from shutil import move
 from django.http import JsonResponse
 from .config import BASE_DIR_FILES, UPLOAD_DIR, WATCHED_DIR
@@ -25,6 +27,14 @@ def handle_uploaded_file(uploaded_files):
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Create your views here.
+
+
+def play_vlc(request):
+    video_path = request.GET.get('video_path')
+    data = {}
+    if sys.platform == 'darwin':
+        subprocess.Popen([os.path.join('/Applications', 'VLC.app', 'Contents', 'MacOS', 'VLC'), video_path])
+    return JsonResponse(data)
 
 
 def load_file_system(request):
