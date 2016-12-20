@@ -4,19 +4,16 @@ from django.db import models
 
 
 class Genre(models.Model):
-    id = models.AutoField
-    name = models.TextField
+    genre = models.TextField(primary_key=True)
 
 
 class TvShow(models.Model):
-    id = models.AutoField
-    name = models.TextField
-    seasons = models.IntegerField
+    title = models.TextField()
+    seasons = models.IntegerField()
     path = models.CharField(max_length=400)
-    genre = models.ForeignKey('Genre')
+    genre = models.ForeignKey('Genre', null=True, blank=True)
 
 
 class Movie(models.Model):
-    id = models.AutoField
-    name = models.TextField
-    genre = models.ForeignKey('Genre')
+    title = models.TextField()
+    genre = models.ForeignKey('Genre', null=True, blank=True)

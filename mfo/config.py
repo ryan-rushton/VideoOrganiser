@@ -7,8 +7,11 @@ BASE_DIR_FILES = '/Users/ryanrushton/Movies'
 # The dir that the VideoOrganiser watches for new files
 WATCHED_DIR = '/Users/ryanrushton/New Media'
 
-# The dir that VideoOrganiser uploads new files to (moved to watched dir after completion
+# The dir that VideoOrganiser uploads new files to (moved to watched dir after completion)
 UPLOAD_DIR = os.path.join(BASE_DIR, 'Uploads')
+
+# The dir that VideoOrganiser moves files to that are waiting a genre
+PENDING_GENRE_DIR = os.path.join(BASE_DIR, 'pending_genre')
 
 # Whether VideoOrganiser is currently watching above dir
 IS_WATCHING = False

@@ -3,8 +3,8 @@ import shutil
 import os
 import time
 from multiprocessing import Process
-from .models import TvShow
-from .config import BASE_DIR_FILES, WATCHED_DIR, IS_WATCHING, ALLOWED_EXTENSIONS
+from .models import TvShow, Movie
+from .config import BASE_DIR_FILES, WATCHED_DIR, IS_WATCHING, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
 
 
 def check_extension(media_file):
@@ -37,44 +37,106 @@ def get_file_details(filename):
     return None
 
 
-def move_tv_season(media_file_path):
+def move_movie(media_file_path, genre):
+    """
+    Moves a movie to the required genre directory
+    :param media_file_path: string
+    :param genre: string
+    :return: True
+    """
+    file_name = os.path.split(media_file_path)[1]
+    movie_dir = os.path.join(BASE_DIR_FILES, 'Movies')
+    genre_dir = os.path.join(movie_dir, genre)
+    if not os.path.isdir(movie_dir):
+        os.mkdir(movie_dir)
+    if not os.path.isdir(genre_dir):
+        os.mkdir(genre_dir)
+    shutil.move(media_file_path, os.path.join(genre_dir, file_name))
+    if Movie.objects.filter(title=file_name).count() == 0:
+        Movie(title=file_name, genre=genre).save()
+    else:
+        entry = Movie.objects.filter(title=file_name)[0]
+        entry.update(genre=genre)
+    return True
+
+
+def move_new_tv_show(media_file_path, genre):
+    """
+    Move a TV show that is not already in the database
+    :param media_file_path: string
+    :param genre: string
+    :return: True
+    """
+    file_name = os.path.split(media_file_path)[1]
+    title, season, episode = get_file_details(file_name)
+    tv_path = os.path.join(BASE_DIR_FILES, 'TV Shows')
+    title_path = os.path.join(tv_path, title)
+    season_path = os.path.join(title_path, season)
+    if not os.path.isdir(tv_path):
+        os.mkdir(tv_path)
+    if not os.path.isdir(title_path):
+        os.mkdir(title_path)
+    if not os.path.isdir(season_path):
+        os.mkdir(season_path)
+    shutil.move(media_file_path, os.path.join(season_path, file_name))
+    TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre).save()
+    return True
+
+
+def move_existing_tv_show(media_file_path):
+    """
+    Move a show that is existing the in the database
+    :param media_file_path: string
+    :return: Bool
+    """
+    file_name = os.path.split(media_file_path)[1]
+    title, season, episode = get_file_details(file_name)
+
+    db_entry = TvShow.objects.filter(title=title)
+
+    # Check to see if the show already exists
+    if db_entry.count() > 0:
+        db_entry = db_entry[0]
+        base_path = db_entry.path
+        season_path = os.path.join(base_path, season)
+        new_file_path = os.path.join(season_path, file_name)
+
+        # Check to see if the season dir exists
+        if not os.path.isdir(season_path):
+            os.mkdir(season_path)
+            if int(db_entry.seasons) < int(season[1:]):
+                db_entry.update(seasons=int(season[1:]))
+
+        shutil.move(media_file_path, new_file_path)
+        return True
+    return False
+
+
+def blind_media_move(media_file_path):
     """
     Moves the file if it is a TV Show. Returns the input if a movie, or a 3-tuple if a new TV show or None if
     successsful
     :param media_file_path: string
     :return: None or string or (string, string, string)
     """
-    tmp = get_file_details(media_file_path)
+    file_name = os.path.split(media_file_path)[1]
+    tmp = get_file_details(file_name)
 
     # Check to see if this is a TV show
     if tmp is not None:
-        name, season, episode = tmp
-        db_entry = TvShow.objects.filter(name=name)
-
-        # Check to see if the show already exists
-        if db_entry.count() > 0:
-            db_entry = db_entry[0]
-            base_path = db_entry.path
-            season_path = os.path.join(base_path, season)
-            new_file_path = os.path.join(season_path, os.path.split(media_file_path)[1])
-
-            # Check to see if the season dir exists
-            if os.path.isdir(season_path):
-                shutil.move(media_file_path, new_file_path)
-                return None
-
-            # Make season dir if it doesn't exist and update the seasons
-            else:
-                os.mkdir(season_path)
-                db_entry.update(seasons=int(season))
-                shutil.move(media_file_path, new_file_path)
+        title, season, episode = tmp
+        # Attempt to move the show as if it was a new show
+        if move_existing_tv_show(media_file_path):
+            pass
 
         # If the show is brand new return  name, season, episode
         else:
-            return name, season, episode
+            shutil.move(media_file_path, os.path.join(PENDING_GENRE_DIR, file_name))
+            return title, season, episode
 
     # return the media file path in the case of a movie
     else:
+        shutil.move(media_file_path, os.path.join(PENDING_GENRE_DIR, file_name))
         return media_file_path
 
     return False
@@ -107,7 +169,7 @@ class Watcher(Process):
                     item_path = os.path.join(self.watched_dir, item)
 
                     # Attempt to move the file as if it were a known TV show
-                    move_return = move_tv_season(item_path)
+                    move_return = blind_media_move(item_path)
 
                     # This returns none if successful
                     if move_return is not None:

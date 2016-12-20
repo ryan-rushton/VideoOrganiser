@@ -24,7 +24,7 @@ function get_file_system(current_dir){
             $.each(data.child_dirs, function(index, value){
                 $('#file_system_list').append('<li class="list-group-item"><p><a ' +
                     'onclick="get_file_system(\''+value[1]+'\');">' +
-                    '<span class="glyphicon glyphicon-folder-close"></span>'+value[0]+'</a></p></li>')
+                    '<span class="glyphicon glyphicon-folder-close"></span> '+value[0]+'</a></p></li>')
             });
             $.each(data.child_files, function(index, value){
                 $('#file_system_list').append('<li class="list-group-item"><p>' +
