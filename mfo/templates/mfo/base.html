@@ -43,15 +43,15 @@
                 <li><a href="/map_genre">Map Genre's</a> </li>
                 <li style="padding-top: 11px">
                     <!-- Trigger the modal with a button -->
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Upload Media</button>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">Upload Media</button>
                 </li>
             </ul>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
 
-<!-- Modal -->
-<div id="myModal" class="modal fade" role="dialog">
+<!-- Modal for uploading files-->
+<div id="uploadModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
 
         <!-- Modal content-->
@@ -77,6 +77,30 @@
 
     </div>
 </div>
+
+<!-- Modal for picking genre-->
+<div id="genreModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Pick a Genre</h4>
+            </div>
+            <div class="modal-body" id="genreModalBody">
+                <p id="genreModalBodyTop"></p>
+                <form id="genre_form" enctype="multipart/form-data" action="http://localhost:8000/ajax/get_genre/" method="post">
+                    {% csrf_token %}
+                    <p id="genreFormBody"></p>
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+
+    </div>
+</div>
+
 {% block content %}
 {% endblock %}
 </body>

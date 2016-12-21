@@ -2,6 +2,7 @@
  * Created by ryanrushton on 11/12/16.
  */
 
+
 function show_video(video_path) {
     var string = video_path
     $('#file_system_jumbo').text(string)
@@ -10,7 +11,7 @@ function show_video(video_path) {
 }
 
 function play_in_vlc(video_path) {
-    $.getJSON("http://localhost:8000/play_vlc/?video_path="+video_path)
+    $.getJSON("{% url play_vlc %}?video_path="+video_path)
 }
 
 function get_file_system(current_dir){
@@ -33,3 +34,30 @@ function get_file_system(current_dir){
         }
     )
 }
+
+function get_genre_func(){
+    $.ajax("http://localhost:8000/ajax/get_genre/",
+        {success:function build_modal(data){
+                if (data.contains_data == true){
+                    var genre_form = data.genre_form;
+                    var file_name = data.file_name;
+                    var intro = 'Pick a genre for '+file_name
+                    var end = genre_form + '<input type="submit" id="genreSubmit" style="margin-top: 10px" ' +
+                        'class="btn btn-default" value="Confirm" onclick="setTimeout(get_genre_func, 2000)"/>'
+                    $('#genreModalBodyTop').text("");
+                    $('#genreModalBodyTop').append(intro);
+                    $('#genreFormBody').text("");
+                    $('#genreFormBody').append(end)
+
+                    $('#genreModal').modal('show');
+                }
+                else{
+                    setTimeout(get_genre_func, 3000)
+                }
+
+            }
+        }
+        )
+}
+
+$('#genreModal').modal()

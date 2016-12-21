@@ -3,8 +3,8 @@ import shutil
 import os
 import time
 from multiprocessing import Process
-from .models import TvShow, Movie
-from .config import BASE_DIR_FILES, WATCHED_DIR, IS_WATCHING, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
+from .models import TvShow, Movie, Genre
+from .config import BASE_DIR_FILES, WATCHED_DIR, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
 
 
 def check_extension(media_file):
@@ -44,6 +44,7 @@ def move_movie(media_file_path, genre):
     :param genre: string
     :return: True
     """
+    genre = Genre.objects.filter(genre=genre)[0]
     file_name = os.path.split(media_file_path)[1]
     movie_dir = os.path.join(BASE_DIR_FILES, 'Movies')
     genre_dir = os.path.join(movie_dir, genre)
@@ -67,19 +68,24 @@ def move_new_tv_show(media_file_path, genre):
     :param genre: string
     :return: True
     """
+    genre_obj = Genre.objects.filter(genre=genre)[0]
     file_name = os.path.split(media_file_path)[1]
     title, season, episode = get_file_details(file_name)
     tv_path = os.path.join(BASE_DIR_FILES, 'TV Shows')
-    title_path = os.path.join(tv_path, title)
+    genre_path = os.path.join(tv_path, genre)
+    title_path = os.path.join(genre_path, title)
     season_path = os.path.join(title_path, season)
     if not os.path.isdir(tv_path):
         os.mkdir(tv_path)
+    if not os.path.isdir(genre_path):
+        os.mkdir(genre_path)
     if not os.path.isdir(title_path):
         os.mkdir(title_path)
     if not os.path.isdir(season_path):
         os.mkdir(season_path)
+    print(os.path.join(season_path, file_name))
     shutil.move(media_file_path, os.path.join(season_path, file_name))
-    TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre).save()
+    TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre_obj).save()
     return True
 
 
@@ -90,25 +96,26 @@ def move_existing_tv_show(media_file_path):
     :return: Bool
     """
     file_name = os.path.split(media_file_path)[1]
-    title, season, episode = get_file_details(file_name)
+    tmp = get_file_details(file_name)
+    if tmp is not None:
+        title, season, episode = tmp
+        db_entry = TvShow.objects.filter(title=title)
 
-    db_entry = TvShow.objects.filter(title=title)
+        # Check to see if the show already exists
+        if db_entry.count() > 0:
+            db_entry = db_entry[0]
+            base_path = db_entry.path
+            season_path = os.path.join(base_path, season)
+            new_file_path = os.path.join(season_path, file_name)
 
-    # Check to see if the show already exists
-    if db_entry.count() > 0:
-        db_entry = db_entry[0]
-        base_path = db_entry.path
-        season_path = os.path.join(base_path, season)
-        new_file_path = os.path.join(season_path, file_name)
+            # Check to see if the season dir exists
+            if not os.path.isdir(season_path):
+                os.mkdir(season_path)
+                if int(db_entry.seasons) < int(season[1:]):
+                    db_entry.update(seasons=int(season[1:]))
 
-        # Check to see if the season dir exists
-        if not os.path.isdir(season_path):
-            os.mkdir(season_path)
-            if int(db_entry.seasons) < int(season[1:]):
-                db_entry.update(seasons=int(season[1:]))
-
-        shutil.move(media_file_path, new_file_path)
-        return True
+            shutil.move(media_file_path, new_file_path)
+            return True
     return False
 
 
@@ -167,20 +174,20 @@ class Watcher(Process):
             if len(media_files) > 0:
                 for item in media_files:
                     item_path = os.path.join(self.watched_dir, item)
+                    if os.path.getmtime(item_path) > 5:
+                        # Attempt to move the file as if it were a known TV show
+                        move_return = blind_media_move(item_path)
 
-                    # Attempt to move the file as if it were a known TV show
-                    move_return = blind_media_move(item_path)
+                        # This returns none if successful
+                        if move_return is not None:
 
-                    # This returns none if successful
-                    if move_return is not None:
+                            # The case it is a movie or doesnt follow the expected TV show format
+                            if move_return == item_path:
+                                pass
 
-                        # The case it is a movie or doesnt follow the expected TV show format
-                        if move_return == item_path:
-                            pass
-
-                        # The case that it is a new TV show, note this needs to be saved to the db
-                        else:
-                            name, season, episode = move_return
+                            # The case that it is a new TV show, note this needs to be saved to the db
+                            else:
+                                name, season, episode = move_return
 
             if not self.q.empty():
                 self.running = self.q.get()

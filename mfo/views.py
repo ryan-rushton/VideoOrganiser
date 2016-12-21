@@ -25,8 +25,13 @@ def handle_uploaded_file(uploaded_files):
                 destination.write(chunk)
         move(os.path.join(UPLOAD_DIR, f.name), os.path.join(WATCHED_DIR, f.name))
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Create your views here.
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Ajax functions
 
 
 def play_vlc(request):
@@ -48,11 +53,21 @@ def get_genre(request):
     :param request:
     :return:
     """
+    # Get a sorted directory of non hidden files
+    whole_dir = os.listdir(PENDING_GENRE_DIR)
+    real_dir = []
+    for item in whole_dir:
+        print(item)
+        if item[0] != '.':
+            real_dir.append(item)
+    real_dir.sort()
+    print(request.method)
+    # In the event that the request was a POST set up the form to send to a modal
     if request.method == 'POST':
         genre_form = SelectGenre(request.POST)
         if genre_form.is_valid():
             genre = request.POST['genre']
-            file_name = os.listdir(PENDING_GENRE_DIR)[0]
+            file_name = real_dir[0]
             media_file_path = os.path.join(PENDING_GENRE_DIR, file_name)
             tmp = get_file_details(file_name)
             if tmp is None:
@@ -61,18 +76,25 @@ def get_genre(request):
             else:
                 move_new_tv_show(media_file_path, genre)
             for item in os.listdir(PENDING_GENRE_DIR):
-                move_existing_tv_show(os.path.join(PENDING_GENRE_DIR, item))
+                if item is not real_dir[0]:
+                    move_existing_tv_show(os.path.join(PENDING_GENRE_DIR, item))
+            upload_form = UploadForm()
+            return render(request, 'mfo/index.html', {
+                'upload_form': upload_form
+            })
 
     else:
-        if len(os.listdir(PENDING_GENRE_DIR)) > 0:
+        if len(real_dir) > 0:
             genre_form = SelectGenre()
-            file_name = os.listdir(PENDING_GENRE_DIR)[0]
+            file_name = real_dir[0]
             data = {
-                'genre_form': genre_form,
+                'contains_data': True,
+                'genre_form': genre_form.as_p(),
                 'file_name': file_name
             }
             return JsonResponse(data)
-    return HttpResponse(status=204)
+
+    return JsonResponse({'contains_data': False})
 
 
 def load_file_system(request):
@@ -102,12 +124,18 @@ def load_file_system(request):
     return JsonResponse(data)
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Views that render the templates
+
+
 def index(request):
     """
     The main index view.
     :param request: request object
     :return: response object
     """
+
+    # Sets up the Upload form
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
@@ -123,6 +151,12 @@ def index(request):
 
 
 def map_genre(request):
+    """
+
+    :param request:
+    :return:
+    """
+    # Sets up the Upload form
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
