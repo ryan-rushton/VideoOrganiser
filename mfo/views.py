@@ -3,10 +3,11 @@ import os
 import subprocess
 import sys
 from shutil import move
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from .config import BASE_DIR_FILES, UPLOAD_DIR, WATCHED_DIR, PENDING_GENRE_DIR
 from .forms import UploadForm, SelectGenre
-from .file_managers import get_file_details, move_movie, move_new_tv_show, move_existing_tv_show
+from .file_managers import get_file_details, move_movie, move_new_tv_show, move_existing_tv_show, \
+    recursive_extract_files, remove_empty_dirs
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Below are functions that are one off's for views or ajax calls
@@ -19,7 +20,6 @@ def handle_uploaded_file(uploaded_files):
     :return: None
     """
     for f in uploaded_files:
-        print(f.name)
         with open(os.path.join(UPLOAD_DIR, f.name), 'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
@@ -49,44 +49,52 @@ def play_vlc(request):
 
 def get_genre(request):
     """
-    Gets a form for selecting a
-    :param request:
-    :return:
+    The backend for creating a modal to select a genre for movies and tv shows that have not been assigned one.
+    :param request: request object
+    :return: response object
     """
     # Get a sorted directory of non hidden files
-    whole_dir = os.listdir(PENDING_GENRE_DIR)
-    real_dir = []
-    for item in whole_dir:
-        print(item)
-        if item[0] != '.':
-            real_dir.append(item)
+    real_dir = recursive_extract_files(PENDING_GENRE_DIR)
     real_dir.sort()
-    print(request.method)
-    # In the event that the request was a POST set up the form to send to a modal
+
+    # In the event that the request was POST
     if request.method == 'POST':
         genre_form = SelectGenre(request.POST)
+
+        # If the form is valid get the genre from the form
         if genre_form.is_valid():
             genre = request.POST['genre']
-            file_name = real_dir[0]
-            media_file_path = os.path.join(PENDING_GENRE_DIR, file_name)
+
+            # From the files in the folder get the first non hidden from an alphabetical ordering
+            file_name = os.path.split(real_dir[0])[1]
+
+            # Move the media file
+            media_file_path = real_dir[0]
             tmp = get_file_details(file_name)
             if tmp is None:
                 move_movie(media_file_path, genre)
-
             else:
                 move_new_tv_show(media_file_path, genre)
-            for item in os.listdir(PENDING_GENRE_DIR):
-                if item is not real_dir[0]:
+
+            # Move any other tv shows the belong to the series just entered.
+            for item in real_dir:
+                if item is not media_file_path:
                     move_existing_tv_show(os.path.join(PENDING_GENRE_DIR, item))
+
+            # Delete any dirs that are empty
+            remove_empty_dirs(PENDING_GENRE_DIR)
+
+            # Create the upload form and return the index to reload the main page.
             upload_form = UploadForm()
             return render(request, 'mfo/index.html', {
                 'upload_form': upload_form
             })
 
+    # In the event that it was not a POST event send the details so a form and modal can be created
     else:
         if len(real_dir) > 0:
             genre_form = SelectGenre()
-            file_name = real_dir[0]
+            file_name = os.path.split(real_dir[0])[1]
             data = {
                 'contains_data': True,
                 'genre_form': genre_form.as_p(),
@@ -139,10 +147,7 @@ def index(request):
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            print(request.FILES.getlist('uploaded_files'))
             handle_uploaded_file(request.FILES.getlist('uploaded_files'))
-        else:
-            print('form not valid')
     else:
         upload_form = UploadForm()
     return render(request, 'mfo/index.html', {
@@ -160,10 +165,7 @@ def map_genre(request):
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            print(request.FILES.getlist('uploaded_files'))
             handle_uploaded_file(request.FILES.getlist('uploaded_files'))
-        else:
-            print('form not valid')
     else:
         upload_form = UploadForm()
     return render(request, 'mfo/map_genre.html', {

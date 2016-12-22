@@ -7,6 +7,61 @@ from .models import TvShow, Movie, Genre
 from .config import BASE_DIR_FILES, WATCHED_DIR, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
 
 
+def recursive_extract_files(input_dir_path):
+    """
+    Recursively get the files from a directory
+    :param input_dir_path: string, a dir path
+    :return: [string], a list of file paths
+    """
+    rtn = []
+    for item in os.listdir(input_dir_path):
+        item_path = os.path.join(input_dir_path, item)
+        if not item.startswith('.') and os.path.isfile(item_path):
+            rtn.append(item_path)
+        elif not item.startswith('.') and os.path.isdir(item_path):
+            rtn += recursive_extract_files(item_path)
+    return rtn
+
+
+def remove_empty_dirs(input_dir_path):
+    """
+    This recursively removes empty directories from a  path. Hidden files are considered non existent.
+    It does not delete the initial directory.
+    :param input_dir_path: string, a path
+    :return: Bool
+    """
+
+    # TODO make this friendly for windows systems
+
+    # has_file is used to indicate if non hidden files were found
+    has_files = False
+
+    # Iterate though the dir
+    for item in os.listdir(input_dir_path):
+        item_path = os.path.join(input_dir_path, item)
+
+        # When a non-hidden dir is found recurse on dir then delete if empty
+        if not item.startswith('.') and os.path.isdir(item_path):
+            if remove_empty_dirs(item_path):
+                os.rmdir(item_path)
+            else:
+                has_files = True
+
+        # When a non-hidden file is found set has_files to True
+        elif not item.startswith('.') and os.path.isfile(item_path):
+            has_files = True
+
+        # Case when a hidden file is found (osx and linux)
+        elif item.startswith('.') and os.path.isfile(item_path):
+            os.remove(item_path)
+
+    # Return True if the dir is empty and False if not
+    if has_files:
+        return False
+    else:
+        return True
+
+
 def check_extension(media_file):
     """
     Check to see if a file has an aloud extension
@@ -22,8 +77,8 @@ def check_extension(media_file):
 def get_file_details(filename):
     """
     Gets the season format and number from a filename
-    :param filename: the filename string
-    :return: strings of name, season, episode or None
+    :param filename: string
+    :return: (string, string, string), strings of name, season, episode or None
     """
 
     file_list = filename.split('.')
@@ -40,18 +95,24 @@ def get_file_details(filename):
 def move_movie(media_file_path, genre):
     """
     Moves a movie to the required genre directory
-    :param media_file_path: string
+    :param media_file_path: string, a path
     :param genre: string
     :return: True
     """
+
+    # Get the Genre object and required dir paths
     genre = Genre.objects.filter(genre=genre)[0]
     file_name = os.path.split(media_file_path)[1]
     movie_dir = os.path.join(BASE_DIR_FILES, 'Movies')
     genre_dir = os.path.join(movie_dir, genre)
+
+    # Create the required dirs if they don't exist
     if not os.path.isdir(movie_dir):
         os.mkdir(movie_dir)
     if not os.path.isdir(genre_dir):
         os.mkdir(genre_dir)
+
+    # Move the file and add/modify an entry to the database
     shutil.move(media_file_path, os.path.join(genre_dir, file_name))
     if Movie.objects.filter(title=file_name).count() == 0:
         Movie(title=file_name, genre=genre).save()
@@ -68,6 +129,8 @@ def move_new_tv_show(media_file_path, genre):
     :param genre: string
     :return: True
     """
+
+    # Get the Genre object and required dir paths
     genre_obj = Genre.objects.filter(genre=genre)[0]
     file_name = os.path.split(media_file_path)[1]
     title, season, episode = get_file_details(file_name)
@@ -75,6 +138,8 @@ def move_new_tv_show(media_file_path, genre):
     genre_path = os.path.join(tv_path, genre)
     title_path = os.path.join(genre_path, title)
     season_path = os.path.join(title_path, season)
+
+    # Create the required dirs if they don't exist
     if not os.path.isdir(tv_path):
         os.mkdir(tv_path)
     if not os.path.isdir(genre_path):
@@ -83,7 +148,8 @@ def move_new_tv_show(media_file_path, genre):
         os.mkdir(title_path)
     if not os.path.isdir(season_path):
         os.mkdir(season_path)
-    print(os.path.join(season_path, file_name))
+
+    # Move the file and add/modify an entry to the database
     shutil.move(media_file_path, os.path.join(season_path, file_name))
     TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre_obj).save()
     return True
@@ -166,7 +232,6 @@ class Watcher(Process):
         This is the run method for the directory watcher. It looks for items in the WATCHED_DIR directory and handles
         them depending on what type of file they are.
         """
-        # TODO a pop-up needs to be called to get a genre when the file is a new TV show or a movie
         while self.running:
 
             # Get all items in WATCHED_DIR
