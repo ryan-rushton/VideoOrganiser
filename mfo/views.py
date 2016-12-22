@@ -47,12 +47,18 @@ def play_vlc(request):
     return JsonResponse(data)
 
 
+# This is used to store the filename passed to javascript when creating the modal form to get a genre
+file_path_to_js = None
+
+
 def get_genre(request):
     """
     The backend for creating a modal to select a genre for movies and tv shows that have not been assigned one.
     :param request: request object
     :return: response object
     """
+    global file_path_to_js
+
     # Get a sorted directory of non hidden files
     real_dir = recursive_extract_files(PENDING_GENRE_DIR)
     real_dir.sort()
@@ -65,20 +71,17 @@ def get_genre(request):
         if genre_form.is_valid():
             genre = request.POST['genre']
 
-            # From the files in the folder get the first non hidden from an alphabetical ordering
-            file_name = os.path.split(real_dir[0])[1]
-
-            # Move the media file
-            media_file_path = real_dir[0]
+            # Get the file name, details and move file
+            file_name = os.path.split(file_path_to_js)[1]
             tmp = get_file_details(file_name)
             if tmp is None:
-                move_movie(media_file_path, genre)
+                move_movie(file_path_to_js, genre)
             else:
-                move_new_tv_show(media_file_path, genre)
+                move_new_tv_show(file_path_to_js, genre)
 
             # Move any other tv shows the belong to the series just entered.
             for item in real_dir:
-                if item is not media_file_path:
+                if item != file_path_to_js:
                     move_existing_tv_show(os.path.join(PENDING_GENRE_DIR, item))
 
             # Delete any dirs that are empty
@@ -91,10 +94,12 @@ def get_genre(request):
             })
 
     # In the event that it was not a POST event send the details so a form and modal can be created
+    # Note that the dir must not have been modified in 2 seconds
     else:
-        if len(real_dir) > 0:
+        if len(real_dir) > 0 and os.path.getmtime(PENDING_GENRE_DIR) > 2:
             genre_form = SelectGenre()
-            file_name = os.path.split(real_dir[0])[1]
+            file_path_to_js = real_dir[0]
+            file_name = os.path.split(file_path_to_js)[1]
             data = {
                 'contains_data': True,
                 'genre_form': genre_form.as_p(),
@@ -120,9 +125,9 @@ def load_file_system(request):
         child_dirs.append(('..', os.path.split(current_dir)[0]))
     tmp = os.listdir(current_dir)
     for item in tmp:
-        if item[0] != '.' and os.path.isdir(os.path.join(current_dir, item)):
+        if not item.startswith('.') and os.path.isdir(os.path.join(current_dir, item)):
             child_dirs.append((item, os.path.join(current_dir, item)))
-        elif item[0] != '.':
+        elif not item.startswith('.'):
             child_files.append((item, os.path.join(current_dir, item)))
     data = {
         'current_dir': current_dir,
