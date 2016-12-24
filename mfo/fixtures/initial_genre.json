@@ -27,37 +27,44 @@
       "genre": "Comedy"
     }
   },
-  {
+   {
     "model": "mfo.Genre",
     "pk": 5,
     "fields": {
-      "genre": "Drama"
+      "genre": "Crime"
     }
   },
   {
     "model": "mfo.Genre",
     "pk": 6,
     "fields": {
-      "genre": "Fantasy"
+      "genre": "Drama"
     }
   },
   {
     "model": "mfo.Genre",
     "pk": 7,
     "fields": {
-      "genre": "Horror"
+      "genre": "Fantasy"
     }
   },
   {
     "model": "mfo.Genre",
     "pk": 8,
     "fields": {
-      "genre": "Thriller"
+      "genre": "Horror"
     }
   },
   {
     "model": "mfo.Genre",
     "pk": 9,
+    "fields": {
+      "genre": "Thriller"
+    }
+  },
+  {
+    "model": "mfo.Genre",
+    "pk": 10,
     "fields": {
       "genre": "Sci-Fi"
     }

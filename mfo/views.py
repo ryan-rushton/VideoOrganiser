@@ -152,7 +152,7 @@ def index(request):
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            handle_uploaded_file(request.FILES.getlist('uploaded_files'))
+            handle_uploaded_file(request.FILES.getlist('choose_files'))
     else:
         upload_form = UploadForm()
     return render(request, 'mfo/index.html', {
@@ -160,7 +160,7 @@ def index(request):
     })
 
 
-def map_genre(request):
+def genre_view(request):
     """
 
     :param request:
@@ -173,6 +173,6 @@ def map_genre(request):
             handle_uploaded_file(request.FILES.getlist('uploaded_files'))
     else:
         upload_form = UploadForm()
-    return render(request, 'mfo/map_genre.html', {
+    return render(request, 'mfo/genre_view.html', {
         'upload_form': upload_form
     })

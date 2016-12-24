@@ -1,10 +1,8 @@
 import re
 import shutil
 import os
-import time
-from multiprocessing import Process
 from .models import TvShow, Movie, Genre
-from .config import BASE_DIR_FILES, WATCHED_DIR, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
+from .config import BASE_DIR_FILES, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
 
 
 def recursive_extract_files(input_dir_path):
@@ -170,17 +168,8 @@ def move_existing_tv_show(media_file_path):
         # Check to see if the show already exists
         if db_entry.count() > 0:
             db_entry = db_entry[0]
-            base_path = db_entry.path
-            season_path = os.path.join(base_path, season)
-            new_file_path = os.path.join(season_path, file_name)
-
-            # Check to see if the season dir exists
-            if not os.path.isdir(season_path):
-                os.mkdir(season_path)
-                if int(db_entry.seasons) < int(season[1:]):
-                    db_entry.update(seasons=int(season[1:]))
-
-            shutil.move(media_file_path, new_file_path)
+            genre = db_entry.genre.genre
+            move_new_tv_show(media_file_path, genre)
             return True
     return False
 
@@ -200,7 +189,7 @@ def blind_media_move(media_file_path):
         title, season, episode = tmp
         # Attempt to move the show as if it was a new show
         if move_existing_tv_show(media_file_path):
-            pass
+            return None
 
         # If the show is brand new return  name, season, episode
         else:
@@ -211,49 +200,3 @@ def blind_media_move(media_file_path):
     else:
         shutil.move(media_file_path, os.path.join(PENDING_GENRE_DIR, file_name))
         return media_file_path
-
-    return False
-
-
-class Watcher(Process):
-    """
-    This class extends the Process class and watches a folder for new media files
-    """
-    # TODO Finish this class off
-
-    def __init__(self, q):
-        Process.__init__(self)
-        self.watched_dir = WATCHED_DIR
-        self.q = q
-        self.running = True
-
-    def run(self):
-        """
-        This is the run method for the directory watcher. It looks for items in the WATCHED_DIR directory and handles
-        them depending on what type of file they are.
-        """
-        while self.running:
-
-            # Get all items in WATCHED_DIR
-            media_files = os.listdir(self.watched_dir)
-            if len(media_files) > 0:
-                for item in media_files:
-                    item_path = os.path.join(self.watched_dir, item)
-                    if os.path.getmtime(item_path) > 5:
-                        # Attempt to move the file as if it were a known TV show
-                        move_return = blind_media_move(item_path)
-
-                        # This returns none if successful
-                        if move_return is not None:
-
-                            # The case it is a movie or doesnt follow the expected TV show format
-                            if move_return == item_path:
-                                pass
-
-                            # The case that it is a new TV show, note this needs to be saved to the db
-                            else:
-                                name, season, episode = move_return
-
-            if not self.q.empty():
-                self.running = self.q.get()
-            time.sleep(10)
