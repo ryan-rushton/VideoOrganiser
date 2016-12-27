@@ -120,6 +120,39 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Set the logging configuration for our custom loggers
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s][%(levelname)s][%(module)s.%(funcName)s][%(message)s]'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+        'mfo.file_managers': {
+            'handlers': ['console'],
+            'filters': [],
+            'propagate': True,
+            'level': 'INFO'
+        }
+    },
+}
+
 # Set the Celery broker URL, in this case a RabbitMQ instance is used.
 
 CELERY_BROKER_URL = 'pyamqp://guest@localhost//'

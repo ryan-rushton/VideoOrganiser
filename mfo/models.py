@@ -10,10 +10,10 @@ class Genre(models.Model):
 class TvShow(models.Model):
     title = models.TextField()
     seasons = models.IntegerField()
-    path = models.CharField(max_length=400)
+    path = models.CharField(max_length=400, primary_key=True)
     genre = models.ForeignKey('Genre', null=True, blank=True)
 
 
 class Movie(models.Model):
-    title = models.TextField()
+    title = models.TextField(primary_key=True)
     genre = models.ForeignKey('Genre', null=True, blank=True)

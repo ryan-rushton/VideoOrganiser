@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import os
 import subprocess
 import sys
-from shutil import move
+import logging
+import shutil
 from django.http import JsonResponse
 from .config import BASE_DIR_FILES, UPLOAD_DIR, WATCHED_DIR, PENDING_GENRE_DIR
 from .forms import UploadForm, SelectGenre
@@ -11,6 +12,9 @@ from .file_managers import get_file_details, move_movie, move_new_tv_show, move_
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Below are functions that are one off's for views or ajax calls
+
+
+logger = logging.getLogger(__name__)
 
 
 def handle_uploaded_file(uploaded_files):
@@ -23,7 +27,13 @@ def handle_uploaded_file(uploaded_files):
         with open(os.path.join(UPLOAD_DIR, f.name), 'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-        move(os.path.join(UPLOAD_DIR, f.name), os.path.join(WATCHED_DIR, f.name))
+        src = os.path.join(UPLOAD_DIR, f.name)
+        dst = os.path.join(WATCHED_DIR, f.name)
+        result = shutil.move(src, dst)
+        if result == dst:
+            logger.info(f'Move successful: {src} tp {dst}')
+        else:
+            logger.error(f'Move failed: {src} tp {dst}')
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -87,11 +97,7 @@ def get_genre(request):
             # Delete any dirs that are empty
             remove_empty_dirs(PENDING_GENRE_DIR)
 
-            # Create the upload form and return the index to reload the main page.
-            upload_form = UploadForm()
-            return render(request, 'mfo/index.html', {
-                'upload_form': upload_form
-            })
+            return redirect('index')
 
     # In the event that it was not a POST event send the details so a form and modal can be created
     # Note that the dir must not have been modified in 2 seconds

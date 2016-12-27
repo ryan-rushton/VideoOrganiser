@@ -1,8 +1,12 @@
 import re
 import shutil
 import os
+import logging
 from .models import TvShow, Movie, Genre
 from .config import BASE_DIR_FILES, ALLOWED_EXTENSIONS, PENDING_GENRE_DIR
+
+
+logger = logging.getLogger(__name__)
 
 
 def recursive_extract_files(input_dir_path):
@@ -12,12 +16,22 @@ def recursive_extract_files(input_dir_path):
     :return: [string], a list of file paths
     """
     rtn = []
-    for item in os.listdir(input_dir_path):
-        item_path = os.path.join(input_dir_path, item)
-        if not item.startswith('.') and os.path.isfile(item_path):
-            rtn.append(item_path)
-        elif not item.startswith('.') and os.path.isdir(item_path):
-            rtn += recursive_extract_files(item_path)
+
+    # Check if input_dir_path is actually a dir
+    if os.path.isdir(input_dir_path):
+
+        for item in os.listdir(input_dir_path):
+            item_path = os.path.join(input_dir_path, item)
+
+            # If an item in dir is a file and not hidden append to rtn
+            if not item.startswith('.') and os.path.isfile(item_path):
+                rtn.append(item_path)
+
+            # If an item in dir is a dir and not hidden recurse and concatenate return with rtn
+            elif not item.startswith('.') and os.path.isdir(item_path):
+                rtn += recursive_extract_files(item_path)
+    else:
+        logger.error(f'Error: Not a directory: {input_dir_path}')
     return rtn
 
 
@@ -26,7 +40,7 @@ def remove_empty_dirs(input_dir_path):
     This recursively removes empty directories from a  path. Hidden files are considered non existent.
     It does not delete the initial directory.
     :param input_dir_path: string, a path
-    :return: Bool
+    :return: Bool, None
     """
 
     # TODO make this friendly for windows systems
@@ -34,30 +48,39 @@ def remove_empty_dirs(input_dir_path):
     # has_file is used to indicate if non hidden files were found
     has_files = False
 
-    # Iterate though the dir
-    for item in os.listdir(input_dir_path):
-        item_path = os.path.join(input_dir_path, item)
+    if os.path.isdir(input_dir_path):
 
-        # When a non-hidden dir is found recurse on dir then delete if empty
-        if not item.startswith('.') and os.path.isdir(item_path):
-            if remove_empty_dirs(item_path):
-                os.rmdir(item_path)
-            else:
+        # Iterate though the dir
+        for item in os.listdir(input_dir_path):
+            item_path = os.path.join(input_dir_path, item)
+
+            # When a non-hidden dir is found recurse on dir then delete if empty
+            if not item.startswith('.') and os.path.isdir(item_path):
+                if remove_empty_dirs(item_path):
+                    os.rmdir(item_path)
+                    logger.info(f'Deleted: {item_path}')
+                else:
+                    has_files = True
+
+            # When a non-hidden file is found set has_files to True
+            elif not item.startswith('.') and os.path.isfile(item_path):
                 has_files = True
 
-        # When a non-hidden file is found set has_files to True
-        elif not item.startswith('.') and os.path.isfile(item_path):
-            has_files = True
+            # Case when a hidden file is found (osx and linux)
+            elif item.startswith('.') and os.path.isfile(item_path):
+                os.remove(item_path)
+                logger.info(f'Deleted: {item_path}')
 
-        # Case when a hidden file is found (osx and linux)
-        elif item.startswith('.') and os.path.isfile(item_path):
-            os.remove(item_path)
+        # Return True if the dir is empty and False if not
+        if has_files:
+            return False
+        else:
+            return True
 
-    # Return True if the dir is empty and False if not
-    if has_files:
-        return False
     else:
-        return True
+        logger.error(f'Error: Not a directory: {input_dir_path}')
+
+    return None
 
 
 def check_extension(media_file):
@@ -105,19 +128,32 @@ def move_movie(media_file_path, genre):
     genre_dir = os.path.join(movie_dir, genre)
 
     # Create the required dirs if they don't exist
-    if not os.path.isdir(movie_dir):
-        os.mkdir(movie_dir)
     if not os.path.isdir(genre_dir):
-        os.mkdir(genre_dir)
+        try:
+            os.makedirs(genre_dir)
+            logger.info(f'Directory created: {movie_dir}')
+        except OSError:
+            logger.error(f'Error: Directory already exists: {movie_dir}')
+        except:
+            logger.error(f'Error: Could not be created, unknown error: {movie_dir}')
 
     # Move the file and add/modify an entry to the database
-    shutil.move(media_file_path, os.path.join(genre_dir, file_name))
-    if Movie.objects.filter(title=file_name).count() == 0:
-        Movie(title=file_name, genre=genre).save()
-    else:
-        entry = Movie.objects.filter(title=file_name)[0]
-        entry.update(genre=genre)
-    return True
+    try:
+        shutil.move(media_file_path, os.path.join(genre_dir, file_name))
+        logger.info(f'Move successful: {file_name} to {genre_dir}')
+        try:
+            if Movie.objects.filter(title=file_name).count() == 0:
+                Movie(title=file_name, genre=genre).save()
+                logger.info(f'Database save successful: {file_name} with genre {genre.genre}')
+            else:
+                entry = Movie.objects.filter(title=file_name)[0]
+                entry.update(genre=genre)
+                logger.info(f'Database modification successful: {file_name} modified genre to {genre.genre}')
+            return True
+        except:
+            logger.error(f'Error: Cannot add or modify {file_name} in database')
+    except:
+        logger.error(f'Error: Move failed: {file_name} to {genre_dir}')
 
 
 def move_new_tv_show(media_file_path, genre):
@@ -129,7 +165,11 @@ def move_new_tv_show(media_file_path, genre):
     """
 
     # Get the Genre object and required dir paths
-    genre_obj = Genre.objects.filter(genre=genre)[0]
+    try:
+        genre_obj = Genre.objects.filter(genre=genre)[0]
+    except IndexError:
+        logger.error(f'IndexError: Could not get genre {genre} from database')
+        return None
     file_name = os.path.split(media_file_path)[1]
     title, season, episode = get_file_details(file_name)
     tv_path = os.path.join(BASE_DIR_FILES, 'TV Shows')
@@ -138,19 +178,29 @@ def move_new_tv_show(media_file_path, genre):
     season_path = os.path.join(title_path, season)
 
     # Create the required dirs if they don't exist
-    if not os.path.isdir(tv_path):
-        os.mkdir(tv_path)
-    if not os.path.isdir(genre_path):
-        os.mkdir(genre_path)
-    if not os.path.isdir(title_path):
-        os.mkdir(title_path)
     if not os.path.isdir(season_path):
-        os.mkdir(season_path)
+        try:
+            os.makedirs(season_path)
+            logger.info(f'Directory created: {season_path}')
+        except OSError:
+            logger.error(f'OSError: Directory already exists: {season_path}')
+        except:
+            logger.error(f'Error: Could not be created, unknown error: {season_path}')
 
     # Move the file and add/modify an entry to the database
-    shutil.move(media_file_path, os.path.join(season_path, file_name))
-    TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre_obj).save()
-    return True
+    try:
+        shutil.move(media_file_path, os.path.join(season_path, file_name))
+        logger.info(f'{file_name} moved to {season_path}')
+        try:
+            TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre_obj).save()
+            logger.info(f'{title}, {season[1:]}, {title_path}, {genre} saved to database')
+            return True
+        except:
+            logger.error(f'Error: Could not add to database: {title}, {season[1:]}, {title_path}, {genre}')
+    except:
+        logger.error(f'Error: Move failed: {file_name} to {season_path}')
+
+    return None
 
 
 def move_existing_tv_show(media_file_path):
@@ -159,7 +209,11 @@ def move_existing_tv_show(media_file_path):
     :param media_file_path: string
     :return: Bool
     """
-    file_name = os.path.split(media_file_path)[1]
+    try:
+        file_name = os.path.split(media_file_path)[1]
+    except:
+        logger.error(f'Error: Not a file system path: {media_file_path}')
+        return None
     tmp = get_file_details(file_name)
     if tmp is not None:
         title, season, episode = tmp
@@ -181,22 +235,40 @@ def blind_media_move(media_file_path):
     :param media_file_path: string
     :return: None or string or (string, string, string)
     """
-    file_name = os.path.split(media_file_path)[1]
+    try:
+        file_name = os.path.split(media_file_path)[1]
+    except:
+        logger.error(f'Error: Not a file system path: {media_file_path}')
+        return None
+
     tmp = get_file_details(file_name)
 
     # Check to see if this is a TV show
     if tmp is not None:
         title, season, episode = tmp
+
         # Attempt to move the show as if it was a new show
         if move_existing_tv_show(media_file_path):
             return None
 
         # If the show is brand new return  name, season, episode
         else:
-            shutil.move(media_file_path, os.path.join(PENDING_GENRE_DIR, file_name))
-            return title, season, episode
+            dst = os.path.join(PENDING_GENRE_DIR, file_name)
+            tmp = shutil.move(media_file_path, dst)
+            if tmp == dst:
+                logger.info(f'Move successful: {media_file_path} to {dst}')
+                return title, season, episode
+            else:
+                logger.error(f'Error: Move failed: {media_file_path} to {dst}')
 
     # return the media file path in the case of a movie
     else:
-        shutil.move(media_file_path, os.path.join(PENDING_GENRE_DIR, file_name))
-        return media_file_path
+        dst = os.path.join(PENDING_GENRE_DIR, file_name)
+        tmp = shutil.move(media_file_path, dst)
+        if tmp == dst:
+            logger.info(f'Move successful: {media_file_path} to {dst}')
+            return media_file_path
+        else:
+            logger.error(f'Error: Move failed: {media_file_path} to {dst}')
+
+    return None
