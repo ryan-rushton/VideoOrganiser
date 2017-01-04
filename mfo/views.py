@@ -33,7 +33,7 @@ def handle_uploaded_file(uploaded_files):
         if result == dst:
             logger.info(f'Move successful: {src} tp {dst}')
         else:
-            logger.error(f'Move failed: {src} tp {dst}')
+            logger.error(f'Error: Move failed: {src} tp {dst}')
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -54,6 +54,7 @@ def play_vlc(request):
     data = {}
     if sys.platform == 'darwin':
         subprocess.Popen([os.path.join('/Applications', 'VLC.app', 'Contents', 'MacOS', 'VLC'), video_path])
+        logger.info('VLC app opened on server')
     return JsonResponse(data)
 
 
@@ -84,6 +85,9 @@ def get_genre(request):
             # Get the file name, details and move file
             file_name = os.path.split(file_path_to_js)[1]
             tmp = get_file_details(file_name)
+
+            logger.info(f'Got genre {genre} for {file_name}')
+
             if tmp is None:
                 move_movie(file_path_to_js, genre)
             else:
@@ -111,9 +115,11 @@ def get_genre(request):
                 'genre_form': genre_form.as_p(),
                 'file_name': file_name
             }
+            logger.info(f'Sending JSON ajax information: {data}')
             return JsonResponse(data)
-
-    return JsonResponse({'contains_data': False})
+    data = {'contains_data': False}
+    logger.info(f'Sending JSON ajax information: {data}')
+    return JsonResponse(data)
 
 
 def load_file_system(request):
@@ -140,6 +146,7 @@ def load_file_system(request):
         'child_dirs': child_dirs,
         'child_files': child_files
     }
+    logger.info(f'Sending JSON ajax information: {data}')
     return JsonResponse(data)
 
 
@@ -158,7 +165,9 @@ def index(request):
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
         if upload_form.is_valid():
-            handle_uploaded_file(request.FILES.getlist('choose_files'))
+            file_list = request.FILES.getlist('choose_files')
+            logger.info(f'Files uploaded: {file_list}')
+            handle_uploaded_file(file_list)
     else:
         upload_form = UploadForm()
     return render(request, 'mfo/index.html', {

@@ -190,10 +190,10 @@ def move_new_tv_show(media_file_path, genre):
     # Move the file and add/modify an entry to the database
     try:
         shutil.move(media_file_path, os.path.join(season_path, file_name))
-        logger.info(f'{file_name} moved to {season_path}')
+        logger.info(f'Move successful: {file_name} to {season_path}')
         try:
             TvShow(title=title, seasons=int(season[1:]), path=title_path, genre=genre_obj).save()
-            logger.info(f'{title}, {season[1:]}, {title_path}, {genre} saved to database')
+            logger.info(f'Database save successful: {title}, {season[1:]}, {title_path}, {genre}')
             return True
         except:
             logger.error(f'Error: Could not add to database: {title}, {season[1:]}, {title_path}, {genre}')

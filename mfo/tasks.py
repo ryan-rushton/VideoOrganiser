@@ -22,6 +22,8 @@ def check_watched_dir():
         for item in media_files:
             item_path = os.path.join(WATCHED_DIR, item)
             if os.path.getmtime(item_path) > 5:
+
                 # Attempt to move the file as if it were a known TV show
                 blind_media_move(item_path)
+    remove_empty_dirs(WATCHED_DIR)
     return None
