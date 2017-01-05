@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def recursive_extract_files(input_dir_path):
     """
-    Recursively get the files from a directory
+    Recursively get the file paths from a directory
     :param input_dir_path: string, a dir path
     :return: [string], a list of file paths
     """
@@ -122,7 +122,7 @@ def move_movie(media_file_path, genre):
     """
 
     # Get the Genre object and required dir paths
-    genre = Genre.objects.filter(genre=genre)[0]
+    genre_obj = Genre.objects.filter(genre=genre)[0]
     file_name = os.path.split(media_file_path)[1]
     movie_dir = os.path.join(BASE_DIR_FILES, 'Movies')
     genre_dir = os.path.join(movie_dir, genre)
@@ -143,13 +143,13 @@ def move_movie(media_file_path, genre):
         logger.info(f'Move successful: {file_name} to {genre_dir}')
         try:
             if Movie.objects.filter(title=file_name).count() == 0:
-                Movie(title=file_name, genre=genre).save()
-                logger.info(f'Database save successful: {file_name} with genre {genre.genre}')
+                Movie(title=file_name, genre=genre_obj).save()
+                logger.info(f'Database save successful: {file_name} with genre {genre}')
             else:
                 entry = Movie.objects.filter(title=file_name)[0]
-                entry.genre = genre
+                entry.genre = genre_obj
                 entry.save()
-                logger.info(f'Database modification successful: {file_name} modified genre to {genre.genre}')
+                logger.info(f'Database modification successful: {file_name} modified genre to {genre}')
             return True
         except:
             logger.error(f'Error: Cannot add or modify {file_name} in database')
@@ -318,25 +318,8 @@ def change_genre(title, new_genre):
 
         # Get current movie location
         old_genre_dir = os.path.join(movie_dir, old_genre)
-        src = os.path.join(old_genre_dir, title)
+        old_movie_path = os.path.join(old_genre_dir, title)
 
-        # Get desired movie location
-        new_genre_dir = os.path.join(movie_dir, new_genre)
-        dst = os.path.join(new_genre_dir, title)
-
-        tmp = shutil.move(src, dst)
-        if tmp == dst:
-            logger.info(f'Move successful: {src} to {dst}')
-            if Genre.objects.filter(genre=new_genre).count() > 0:
-                new_genre_obj = Genre.objects.filter(genre=new_genre)[0]
-                movie.genre = new_genre_obj
-                movie.save()
-                logger.info(f'Model update successful: {movie.title}, {movie.seasons}, {movie.path}, '
-                            f'{movie.genre}')
-                return title
-            else:
-                logger.warning(f'Warning: Genre does not exist: {new_genre}')
-        else:
-            logger.error(f'Error: Move failed: {src} to {dst}')
+        move_movie(old_movie_path, new_genre)
 
     return None
