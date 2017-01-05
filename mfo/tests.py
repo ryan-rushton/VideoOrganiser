@@ -3,7 +3,7 @@ import shutil
 from django.test import TestCase
 from VideoOrganiser.settings import BASE_DIR
 from .file_managers import get_file_details, check_extension, remove_empty_dirs, recursive_extract_files, move_movie, \
-    move_new_tv_show
+    move_new_tv_show, move_existing_tv_show
 from .config import ALLOWED_EXTENSIONS, BASE_DIR_FILES
 from .models import TvShow, Movie, Genre
 
@@ -174,6 +174,58 @@ class TestMoveNewTvShow(TestCase):
         test_path1 = os.path.join(genre_path1, 'test', 'S01', 'test.s01e01.mp4')
         self.assertTrue(os.path.isfile(test_path1))
         self.assertTrue(TvShow.objects.filter(title='test').count() == 1)
+
+        # Clean up db
+        TvShow.objects.filter(title='test')[0].delete()
+        genre_obj1.delete()
+
+        # Remove test folder
+        shutil.rmtree(test_dir)
+        shutil.rmtree(genre_path1)
+
+
+class TestMoveExistingTvShow(TestCase):
+    def test_move_existing_tv_show(self):
+        # Create a dir for tests
+        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        if not os.path.isdir(test_dir):
+            os.mkdir(test_dir)
+
+        # Create Genre's specifically for testing
+        genre_obj1 = Genre(genre='TestGenre1')
+        genre_obj1.save()
+        genre_path1 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre1')
+
+        # Create a test file
+        file_path = os.path.join(test_dir, 'test.s01e01.mp4')
+        open(file_path, 'w+').close()
+
+        # Test that a new show has been added
+        move_new_tv_show(file_path, genre_obj1.genre)
+        test_path1 = os.path.join(genre_path1, 'test', 'S01', 'test.s01e01.mp4')
+        self.assertTrue(os.path.isfile(test_path1))
+        self.assertTrue(TvShow.objects.filter(title='test').count() == 1)
+
+        # Create a second episode for s01
+        file_path2 = os.path.join(test_dir, 'test.s01e02.mp4')
+        open(file_path2, 'w+').close()
+
+        # Test that second episode added
+        move_existing_tv_show(file_path2)
+        test_path2 = os.path.join(genre_path1, 'test', 'S01', 'test.s01e02.mp4')
+        self.assertTrue(os.path.isfile(test_path2))
+        self.assertTrue(TvShow.objects.filter(title='test').count() == 1)
+
+        # Create a second season
+        file_path3 = os.path.join(test_dir, 'test.s02e01.mp4')
+        open(file_path3, 'w+').close()
+
+        # Test that the new season is added and db updated
+        move_existing_tv_show(file_path3)
+        test_path3 = os.path.join(genre_path1, 'test', 'S02', 'test.s02e01.mp4')
+        self.assertTrue(os.path.isfile(test_path3))
+        self.assertTrue(TvShow.objects.filter(title='test').count() == 1)
+        self.assertTrue(TvShow.objects.filter(title='test')[0].seasons == 2)
 
         # Clean up db
         TvShow.objects.filter(title='test')[0].delete()
