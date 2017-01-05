@@ -147,7 +147,8 @@ def move_movie(media_file_path, genre):
                 logger.info(f'Database save successful: {file_name} with genre {genre.genre}')
             else:
                 entry = Movie.objects.filter(title=file_name)[0]
-                entry.update(genre=genre)
+                entry.genre = genre
+                entry.save()
                 logger.info(f'Database modification successful: {file_name} modified genre to {genre.genre}')
             return True
         except:
@@ -270,5 +271,72 @@ def blind_media_move(media_file_path):
             return media_file_path
         else:
             logger.error(f'Error: Move failed: {media_file_path} to {dst}')
+
+    return None
+
+
+def change_genre(title, new_genre):
+    """
+    Function to change the genre of a media file, both in db and in file system
+    :param title: string (title from TvShow or Movie object)
+    :param new_genre: string (genre from Genre object)
+    :return: string or None
+    """
+    # Change the genre of a TvShow
+    if TvShow.objects.filter(title=title).count() > 0:
+        tv_show = TvShow.objects.filter(title=title)[0]
+
+        # Get current tvshow path
+        tv_show_path = tv_show.path
+
+        # Get desired tvshow path
+        tv_path = os.path.join(BASE_DIR_FILES, 'TV Shows')
+        genre_path = os.path.join(tv_path, new_genre)
+        dst = os.path.join(genre_path, title)
+
+        # Move tvshow and update database
+        tmp = shutil.move(tv_show_path, dst)
+        if tmp == dst:
+            logger.info(f'Move successful: {tv_show_path} to {dst}')
+            if Genre.objects.filter(genre=new_genre).count() > 0:
+                new_genre_obj = Genre.objects.filter(genre=new_genre)[0]
+                tv_show.genre = new_genre_obj
+                tv_show.save()
+                logger.info(f'Model update successful: {tv_show.title}, {tv_show.seasons}, {tv_show.path}, '
+                            f'{tv_show.genre}')
+                return title
+            else:
+                logger.warning(f'Warning: Genre does not exist: {new_genre}')
+        else:
+            logger.error(f'Error: Move failed: {tv_show_path} to {dst}')
+
+    # Change genre of a Movie
+    elif Movie.objects.filter(title=title).count() > 0:
+        movie = Movie.objects.filter(title=title)[0]
+        old_genre = movie.genre.genre
+        movie_dir = os.path.join(BASE_DIR_FILES, 'Movies')
+
+        # Get current movie location
+        old_genre_dir = os.path.join(movie_dir, old_genre)
+        src = os.path.join(old_genre_dir, title)
+
+        # Get desired movie location
+        new_genre_dir = os.path.join(movie_dir, new_genre)
+        dst = os.path.join(new_genre_dir, title)
+
+        tmp = shutil.move(src, dst)
+        if tmp == dst:
+            logger.info(f'Move successful: {src} to {dst}')
+            if Genre.objects.filter(genre=new_genre).count() > 0:
+                new_genre_obj = Genre.objects.filter(genre=new_genre)[0]
+                movie.genre = new_genre_obj
+                movie.save()
+                logger.info(f'Model update successful: {movie.title}, {movie.seasons}, {movie.path}, '
+                            f'{movie.genre}')
+                return title
+            else:
+                logger.warning(f'Warning: Genre does not exist: {new_genre}')
+        else:
+            logger.error(f'Error: Move failed: {src} to {dst}')
 
     return None

@@ -177,9 +177,9 @@ def index(request):
 
 def genre_view(request):
     """
-
-    :param request:
-    :return:
+    A view to allow deleting media and alternating genres
+    :param request: request object
+    :return: response object
     """
     # Sets up the Upload form
     if request.method == 'POST':
