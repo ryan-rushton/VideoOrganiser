@@ -11,7 +11,7 @@ from .file_managers import get_file_details, move_movie, move_new_tv_show, move_
     recursive_extract_files, remove_empty_dirs
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Below are functions that are one off's for views or ajax calls
+# Below are functions that are helpers for views or ajax calls
 
 
 logger = logging.getLogger(__name__)
@@ -133,7 +133,9 @@ def load_file_system(request):
     current_dir = request.GET.get('new_dir')
     child_dirs = []
     child_files = []
-    if current_dir == 'undefined':
+    if current_dir == 'home':
+        current_dir = BASE_DIR_FILES
+    elif current_dir == 'undefined':
         try:
             current_dir = request.session['current_dir']
         except KeyError:

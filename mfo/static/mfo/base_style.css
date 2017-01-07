@@ -1,7 +1,24 @@
+html {
+    height: 100%;
+    margin: 0 auto;
+}
+
 body {
     background: #eeeeee; /* For browsers that do not support gradients */
-    min-height: 100vh;
-    color: black;
+    height: 100%;
+    margin: 0 auto;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #d5d5d5;
+}
+
+#footer .content p {
+    margin-bottom: 0
 }
 
 table {
@@ -26,6 +43,10 @@ h2{
 
 #clear-jumbo{
     background: rgba(240, 240, 240, 0);
+}
+
+#file_system_jumbo{
+    background: transparent;
 }
 
 #search-box {
@@ -60,37 +81,47 @@ h2{
     box-shadow:none;
 }
 
+.nav-div{
+    background-image: -webkit-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
+    background-image: -o-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
+    background-image: linear-gradient(135deg,#040224,#0C0F6A,#0C0F7D);
+}
+
 .navbar-custom{
-    background-color: darkgray;
+    background-color: transparent;
 }
 
 .navbar-custom .navbar-nav {
-    font-size: 150%;
 }
 
 .navbar-custom .navbar-nav > li > a {
     font-family: Futura, sans-serif;
     color: white;
-    padding-bottom: 20px;
-    padding-top: 20px;
 }
 
 .navbar-custom .navbar-brand {
+    font-family: Futura, sans-serif;
     color: white;
-    font-size: 150%;
-    max-width: 250px;
-    overflow: visible;
-    padding-top: 3px;
+    vertical-align: middle;
+    font-size: 250%;
 }
 
 .navbar-custom .navbar-brand:hover,
 .navbar-custom .navbar-brand:focus {
-    color: white;
+    color: lightblue;
+    background-color: transparent;
 }
 
 .navbar-custom .navbar-nav > li > a:hover,
 .navbar-custom .navbar-nav > li > a:focus {
     color: lightblue;
-    background-color: darkgray;
+    background-color: transparent;
+}
+
+#genreModal .modal-header, #uploadModal .modal-header{
+    background-image: -webkit-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
+    background-image: -o-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
+    background-image: linear-gradient(135deg,#040224,#0C0F6A,#0C0F7D);
+    color: white;
 }
 
