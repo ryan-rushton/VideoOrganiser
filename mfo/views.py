@@ -101,7 +101,9 @@ def get_genre(request):
             # Delete any dirs that are empty
             remove_empty_dirs(PENDING_GENRE_DIR)
 
-            return redirect('index')
+            data = {'contains_data': False}
+            logger.info(f'Sending JSON ajax information: {data}')
+            return JsonResponse(data)
 
     # In the event that it was not a POST event send the details so a form and modal can be created
     # Note that the dir must not have been modified in 2 seconds
@@ -131,10 +133,14 @@ def load_file_system(request):
     current_dir = request.GET.get('new_dir')
     child_dirs = []
     child_files = []
-    if current_dir is None or current_dir == 'undefined' or current_dir == BASE_DIR_FILES:
-        current_dir = BASE_DIR_FILES
-    else:
+    if current_dir == 'undefined':
+        try:
+            current_dir = request.session['current_dir']
+        except KeyError:
+            current_dir = BASE_DIR_FILES
+    if current_dir != BASE_DIR_FILES:
         child_dirs.append(('..', os.path.split(current_dir)[0]))
+    request.session['current_dir'] = current_dir
     tmp = os.listdir(current_dir)
     for item in tmp:
         if not item.startswith('.') and os.path.isdir(os.path.join(current_dir, item)):

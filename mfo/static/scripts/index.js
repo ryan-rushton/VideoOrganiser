@@ -15,7 +15,7 @@ function play_in_vlc(video_path) {
 }
 
 function get_file_system(current_dir){
-    current_dir = "?new_dir="+current_dir || "";
+    current_dir = "?new_dir="+current_dir;
     $.getJSON("http://localhost:8000/ajax/load_file_system/"+current_dir,
         function (data) {
             $('#file_system_jumbo').text("");

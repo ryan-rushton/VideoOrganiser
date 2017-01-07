@@ -204,10 +204,11 @@ def move_new_tv_show(media_file_path, genre):
     return None
 
 
-def move_existing_tv_show(media_file_path):
+def move_existing_tv_show(media_file_path, details=None):
     """
     Move a show that is existing the in the database
     :param media_file_path: string
+    :param details: (string, string, string) (expected from get_file_details())
     :return: Bool
     """
     try:
@@ -215,9 +216,10 @@ def move_existing_tv_show(media_file_path):
     except:
         logger.error(f'Error: Not a file system path: {media_file_path}')
         return None
-    tmp = get_file_details(file_name)
-    if tmp is not None:
-        title, season, episode = tmp
+    if details is None:
+        details = get_file_details(file_name)
+    if details is not None:
+        title, season, episode = details
         db_entry = TvShow.objects.filter(title=title)
 
         # Check to see if the show already exists
@@ -242,14 +244,13 @@ def blind_media_move(media_file_path):
         logger.error(f'Error: Not a file system path: {media_file_path}')
         return None
 
-    tmp = get_file_details(file_name)
+    details = get_file_details(file_name)
 
     # Check to see if this is a TV show
-    if tmp is not None:
-        title, season, episode = tmp
+    if details is not None:
 
-        # Attempt to move the show as if it was a new show
-        if move_existing_tv_show(media_file_path):
+        # Attempt to move the show as if it was an existing show
+        if move_existing_tv_show(media_file_path, details=details):
             return None
 
         # If the show is brand new return  name, season, episode
@@ -258,7 +259,7 @@ def blind_media_move(media_file_path):
             tmp = shutil.move(media_file_path, dst)
             if tmp == dst:
                 logger.info(f'Move successful: {media_file_path} to {dst}')
-                return title, season, episode
+                return details
             else:
                 logger.error(f'Error: Move failed: {media_file_path} to {dst}')
 
