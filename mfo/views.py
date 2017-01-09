@@ -133,6 +133,8 @@ def load_file_system(request):
     current_dir = request.GET.get('new_dir')
     child_dirs = []
     child_files = []
+
+    # Set current dir in special cases and add .. to the list where appropriate for dir reversal
     if current_dir == 'home':
         current_dir = BASE_DIR_FILES
     elif current_dir == 'undefined':
@@ -142,13 +144,23 @@ def load_file_system(request):
             current_dir = BASE_DIR_FILES
     if current_dir != BASE_DIR_FILES:
         child_dirs.append(('..', os.path.split(current_dir)[0]))
+
+    # Set a session variable for the current dir
     request.session['current_dir'] = current_dir
+
+    # Stops access to files and dirs that are not children of the Base Directory
+    if BASE_DIR_FILES not in current_dir:
+        return None
+
+    # Create the list of current dir children
     tmp = os.listdir(current_dir)
     for item in tmp:
         if not item.startswith('.') and os.path.isdir(os.path.join(current_dir, item)):
             child_dirs.append((item, os.path.join(current_dir, item)))
         elif not item.startswith('.'):
             child_files.append((item, os.path.join(current_dir, item)))
+
+    # Set the return data
     data = {
         'current_dir': current_dir,
         'child_dirs': child_dirs,
