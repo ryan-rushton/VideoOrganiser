@@ -290,17 +290,25 @@ class TestChangeGenre(TestCase):
         genre_obj1 = Genre(genre='TestGenre1')
         genre_obj1.save()
         genre_path1 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre1')
+        genre_movie_path1 = os.path.join(BASE_DIR_FILES, 'Movies', 'TestGenre1')
 
         # Create Genre's specifically for testing
         genre_obj2 = Genre(genre='TestGenre2')
         genre_obj2.save()
         genre_path2 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre2')
+        genre_movie_path2 = os.path.join(BASE_DIR_FILES, 'Movies', 'TestGenre2')
 
         # Create a test TV file
         file_name = 'test.s01e01.mp4'
         file_path = os.path.join(test_dir, file_name)
         open(file_path, 'w+').close()
 
+        # Create a test Movie file
+        file_name2 = 'somemovie.mp4'
+        file_path2 = os.path.join(test_dir, file_name2)
+        open(file_path2, 'w+').close()
+
+        # Test TV Show instance
         move_new_tv_show(file_path, genre=genre_obj1.genre)
         self.assertTrue(os.path.isfile(os.path.join(genre_path1, 'test', 'S01', file_name)))
         self.assertTrue(TvShow.objects.filter(title='test')[0].genre == genre_obj1)
@@ -310,6 +318,17 @@ class TestChangeGenre(TestCase):
         self.assertFalse(os.path.isfile(os.path.join(genre_path1, 'test', 'S01', file_name)))
         self.assertTrue(os.path.isfile(os.path.join(genre_path2, 'test', 'S01', file_name)))
         self.assertTrue(TvShow.objects.filter(title='test')[0].genre == genre_obj2)
+
+        # Test Movie instance
+        move_movie(file_path2, genre=genre_obj1.genre)
+        self.assertTrue(os.path.isfile(os.path.join(genre_movie_path1, file_name2)))
+        self.assertTrue(Movie.objects.filter(title=file_name2)[0].genre == genre_obj1)
+
+        change_genre(file_name2, genre_obj2.genre)
+
+        self.assertFalse(os.path.isfile(os.path.join(genre_movie_path1, file_name2)))
+        self.assertTrue(os.path.isfile(os.path.join(genre_movie_path2, file_name2)))
+        self.assertTrue(Movie.objects.filter(title=file_name2)[0].genre == genre_obj2)
 
         shutil.rmtree(test_dir)
         shutil.rmtree(genre_path2)
