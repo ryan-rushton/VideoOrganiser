@@ -34,11 +34,6 @@ SOFTWARE.
 
 Installation
 ------------------------------------------------------------------------
-Please see the requirements.txt file for python packages required.
-
-How to run?
-------------------------------------------------------------------------
-
 First navigate into the VideoOrganiser main directory.
 
 Install a virtual environment in the VideoOrganiser directory using
@@ -61,6 +56,8 @@ Set up the database with
     "virtual_env/bin/python manage.py makemigrations"
     "virtual_env/bin/python manage.py loaddata initial_genre.json"
 
+How to run?
+------------------------------------------------------------------------
 Start a celery worker to continually check the watched directory with
     'virtual_env/bin/celery -A VideoOrganiser worker'
 
