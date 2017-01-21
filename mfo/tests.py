@@ -1,10 +1,11 @@
 import os
 import shutil
+
 from django.test import TestCase
 from VideoOrganiser.settings import BASE_DIR
 from .file_managers import get_file_details, check_extension, remove_empty_dirs, recursive_extract_files, move_movie, \
-    move_new_tv_show, move_existing_tv_show
-from .config import ALLOWED_EXTENSIONS, BASE_DIR_FILES
+    move_new_tv_show, move_existing_tv_show, blind_media_move, change_genre
+from .config import ALLOWED_EXTENSIONS, BASE_DIR_FILES, PENDING_GENRE_DIR
 from .models import TvShow, Movie, Genre
 
 
@@ -114,8 +115,7 @@ class TestMoveMovie(TestCase):
     def test_move_movie(self):
         # Create a dir for tests
         test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
-        if not os.path.isdir(test_dir):
-            os.mkdir(test_dir)
+        os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
         genre_obj1 = Genre(genre='TestGenre1')
@@ -158,8 +158,7 @@ class TestMoveNewTvShow(TestCase):
     def test_move_new_tv_show(self):
         # Create a dir for tests
         test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
-        if not os.path.isdir(test_dir):
-            os.mkdir(test_dir)
+        os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
         genre_obj1 = Genre(genre='TestGenre1')
@@ -188,8 +187,7 @@ class TestMoveExistingTvShow(TestCase):
     def test_move_existing_tv_show(self):
         # Create a dir for tests
         test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
-        if not os.path.isdir(test_dir):
-            os.mkdir(test_dir)
+        os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
         genre_obj1 = Genre(genre='TestGenre1')
@@ -234,3 +232,84 @@ class TestMoveExistingTvShow(TestCase):
         # Remove test folder
         shutil.rmtree(test_dir)
         shutil.rmtree(genre_path1)
+
+
+class TestBlindMediaMove(TestCase):
+    def test_blind_media_move(self):
+        # Create a dir for tests
+        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        os.mkdir(test_dir)
+
+        # Create Genre's specifically for testing
+        genre_obj1 = Genre(genre='TestGenre1')
+        genre_obj1.save()
+        genre_path1 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre1')
+
+        # Create a test TV file
+        file_name = 'test.s01e01.mp4'
+        file_path = os.path.join(test_dir, file_name)
+        open(file_path, 'w+').close()
+
+        # Create a test Movie file
+        file_name2 = 'somemovie.mp4'
+        file_path2 = os.path.join(test_dir, file_name2)
+        open(file_path2, 'w+').close()
+
+        self.assertTrue(blind_media_move(file_path) == ('test', 'S01', 'E01'))
+        self.assertTrue(blind_media_move(file_path2) == file_path2)
+        self.assertTrue(os.path.isfile(os.path.join(PENDING_GENRE_DIR, file_name)))
+        self.assertTrue(os.path.isfile(os.path.join(PENDING_GENRE_DIR, file_name2)))
+        os.remove(os.path.join(PENDING_GENRE_DIR, file_name2))
+
+        shutil.move(os.path.join(PENDING_GENRE_DIR, file_name), file_path)
+        move_new_tv_show(file_path, genre=genre_obj1.genre)
+
+        self.assertTrue(TvShow.objects.filter(title='test').count() == 1)
+
+        # Create a test TV file
+        file_path3 = os.path.join(test_dir, 'test.s01e02.mp4')
+        open(file_path3, 'w+').close()
+        self.assertTrue(blind_media_move(file_path3) is None)
+
+        # Clean up db
+        TvShow.objects.filter(title='test')[0].delete()
+        genre_obj1.delete()
+
+        # Remove test folder
+        shutil.rmtree(test_dir)
+        shutil.rmtree(genre_path1)
+
+
+class TestChangeGenre(TestCase):
+    def test_change_genre(self):
+        # Create a dir for tests
+        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        os.mkdir(test_dir)
+
+        # Create Genre's specifically for testing
+        genre_obj1 = Genre(genre='TestGenre1')
+        genre_obj1.save()
+        genre_path1 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre1')
+
+        # Create Genre's specifically for testing
+        genre_obj2 = Genre(genre='TestGenre2')
+        genre_obj2.save()
+        genre_path2 = os.path.join(BASE_DIR_FILES, 'TV Shows', 'TestGenre2')
+
+        # Create a test TV file
+        file_name = 'test.s01e01.mp4'
+        file_path = os.path.join(test_dir, file_name)
+        open(file_path, 'w+').close()
+
+        move_new_tv_show(file_path, genre=genre_obj1.genre)
+        self.assertTrue(os.path.isfile(os.path.join(genre_path1, 'test', 'S01', file_name)))
+        self.assertTrue(TvShow.objects.filter(title='test')[0].genre == genre_obj1)
+
+        change_genre('test', genre_obj2.genre)
+
+        self.assertFalse(os.path.isfile(os.path.join(genre_path1, 'test', 'S01', file_name)))
+        self.assertTrue(os.path.isfile(os.path.join(genre_path2, 'test', 'S01', file_name)))
+        self.assertTrue(TvShow.objects.filter(title='test')[0].genre == genre_obj2)
+
+        shutil.rmtree(test_dir)
+        shutil.rmtree(genre_path2)
