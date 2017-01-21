@@ -38,4 +38,31 @@ Please see the requirements.txt file for python packages required.
 
 How to run?
 ------------------------------------------------------------------------
-Not currently in running form
+
+First navigate into the VideoOrganiser main directory.
+
+Install a virtual environment in the VideoOrganiser directory using
+    'python3 -m venv virtual_env'
+
+Install the required packages using "virtual_env/bin/pip install -r requirements.txt"
+
+A message broker needs to be installed, this is set up for rabbitmq, please see
+https://www.rabbitmq.com/ for installation instructions
+
+Set the directories to be used by VideoOrganiser by setting the directories in
+mfo.config.
+
+If you wish to modify the genre's used add or remove instances in mfo.fixtures.initial_genre.json,
+making sure to keep the same format.
+
+Set up the database with
+
+    "virtual_env/bin/python manage.py migrate"
+    "virtual_env/bin/python manage.py makemigrations"
+    "virtual_env/bin/python manage.py loaddata initial_genre.json"
+
+Start a celery worker to continually check the watched directory with
+    'virtual_env/bin/celery -A VideoOrganiser worker'
+
+Finally start the web app with
+    'virtual_env/bin/python manage.py runserver'
