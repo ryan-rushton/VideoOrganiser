@@ -20,7 +20,15 @@ function get_file_system(current_dir){
         function (data) {
             $('#file_system_jumbo').text("");
             $('#file_system_list').text("");
-            var top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +'</p>';
+            if(data.current_is_tvshow){
+                var string_array = data.current_dir.split("/");
+                var title = string_array[string_array.length - 1];
+                var top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +
+                    '  <a href="entry_view?entry=' + title + '"><span class="glyphicon glyphicon-edit"></span></a></p>';
+            }
+            else{
+                var top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +'</p>';
+            }
             $('#file_system_jumbo').append(top_line).append('<ul class="list-group" id="file_system_list"></ul>');
             $.each(data.child_dirs, function(index, value){
                 $('#file_system_list').append('<li class="list-group-item"><p><a ' +
@@ -52,7 +60,7 @@ function get_genre_func(){
                     $('#genreModal').modal('show');
                 }
                 else{
-                    setTimeout(get_genre_func, 3000)
+                    setTimeout(get_genre_func, 3000);
                 }
 
             }

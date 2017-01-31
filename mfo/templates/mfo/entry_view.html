@@ -1,0 +1,47 @@
+{% extends "mfo/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="jumbotron" style="background: white">
+    <h2>Database entry details</h2>
+        <button type="button" class="btn btn-primary navbar-btn" data-toggle="modal" data-target="#genreChangeModal">Change genre</button>
+        <table>
+            {% for key, value in entry_details.items %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+    <!-- Modal for changing genre-->
+    <div id="genreChangeModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Pick a Genre</h4>
+                </div>
+                <div class="modal-body" id="genreChangeModalBody">
+                    <p id="genreModalBodyTop"></p>
+                    <form id="genre_change_form" enctype="multipart/form-data" action="" method="post">
+                        {% csrf_token %}
+                              {{ genre_change_form.as_p }}
+                        <input type="submit" id="genre_change_submit" style="margin-top: 10px" class="btn btn-default" value="Update" />
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

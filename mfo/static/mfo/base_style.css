@@ -5,15 +5,18 @@ html {
 
 body {
     background: #eeeeee; /* For browsers that do not support gradients */
-    height: 100%;
     margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.content {
+  flex: 1;
 }
 
+
 .footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 50px;
+    padding: 5px;
     background-color: #d5d5d5;
 }
 
@@ -118,7 +121,7 @@ h2{
     background-color: transparent;
 }
 
-#genreModal .modal-header, #uploadModal .modal-header{
+#genreModal .modal-header, #uploadModal .modal-header, #genreChangeModal .modal-header{
     background-image: -webkit-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
     background-image: -o-linear-gradient(315deg,#040224,#0C0F6A,#0C0F7D);
     background-image: linear-gradient(135deg,#040224,#0C0F6A,#0C0F7D);

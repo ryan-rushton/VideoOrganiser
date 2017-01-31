@@ -302,9 +302,10 @@ def change_genre(title, new_genre):
             if Genre.objects.filter(genre=new_genre).count() > 0:
                 new_genre_obj = Genre.objects.filter(genre=new_genre)[0]
                 tv_show.genre = new_genre_obj
+                tv_show.path = dst
                 tv_show.save()
                 logger.info(f'Model update successful: {tv_show.title}, {tv_show.seasons}, {tv_show.path}, '
-                            f'{tv_show.genre}')
+                            f'{tv_show.genre.genre}')
                 return title
             else:
                 logger.warning(f'Warning: Genre does not exist: {new_genre}')

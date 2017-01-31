@@ -59,7 +59,7 @@ Set up the database with
 How to run?
 ------------------------------------------------------------------------
 Start a celery worker to continually check the watched directory with
-    'virtual_env/bin/celery -A VideoOrganiser worker'
+    'virtual_env/bin/celery -A VideoOrganiser worker -B'
 
 Finally start the web app with
     'virtual_env/bin/python manage.py runserver'

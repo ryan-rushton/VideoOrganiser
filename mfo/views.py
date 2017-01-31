@@ -8,7 +8,8 @@ from django.http import JsonResponse
 from .config import BASE_DIR_FILES, UPLOAD_DIR, WATCHED_DIR, PENDING_GENRE_DIR
 from .forms import UploadForm, SelectGenre
 from .file_managers import get_file_details, move_movie, move_new_tv_show, move_existing_tv_show, \
-    recursive_extract_files, remove_empty_dirs
+    recursive_extract_files, remove_empty_dirs, change_genre
+from .models import Movie, TvShow
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Below are functions that are helpers for views or ajax calls
@@ -133,6 +134,7 @@ def load_file_system(request):
     current_dir = request.GET.get('new_dir')
     child_dirs = []
     child_files = []
+    current_is_tvshow = False
 
     # Set current dir in special cases and add .. to the list where appropriate for dir reversal
     if current_dir == 'home':
@@ -160,11 +162,15 @@ def load_file_system(request):
         elif not item.startswith('.'):
             child_files.append((item, os.path.join(current_dir, item)))
 
+    if TvShow.objects.filter(path=current_dir):
+        current_is_tvshow = True
+
     # Set the return data
     data = {
         'current_dir': current_dir,
         'child_dirs': child_dirs,
-        'child_files': child_files
+        'child_files': child_files,
+        'current_is_tvshow': current_is_tvshow
     }
     logger.info(f'Sending JSON ajax information: {data}')
     return JsonResponse(data)
@@ -195,19 +201,45 @@ def index(request):
     })
 
 
-def genre_view(request):
+def entry_view(request):
     """
     A view to allow deleting media and alternating genres
     :param request: request object
     :return: response object
     """
+
+    entry = request.GET.get('entry')
+
     # Sets up the Upload form
     if request.method == 'POST':
         upload_form = UploadForm(request.POST, request.FILES)
+        genre_change_form = SelectGenre(request.POST)
         if upload_form.is_valid():
             handle_uploaded_file(request.FILES.getlist('uploaded_files'))
+        if genre_change_form.is_valid():
+            new_genre = request.POST['genre']
+            change_genre(entry, new_genre)
+
     else:
         upload_form = UploadForm()
-    return render(request, 'mfo/genre_view.html', {
-        'upload_form': upload_form
+        genre_change_form = SelectGenre()
+
+    entry_details = {}
+
+    if TvShow.objects.filter(title=entry).count() > 0:
+        tv_object = TvShow.objects.filter(title=entry)[0]
+        entry_details['Title'] = tv_object.title
+        entry_details['Genre'] = tv_object.genre.genre
+        entry_details['Seasons'] = tv_object.seasons
+        entry_details['Path'] = tv_object.path
+
+    if Movie.objects.filter(title=entry).count() > 0:
+        movie_object = TvShow.objects.filter(title=entry)[0]
+        entry_details['Title'] = movie_object.title
+        entry_details['Genre'] = movie_object.genre.genre
+
+    return render(request, 'mfo/entry_view.html', {
+        'upload_form': upload_form,
+        'genre_change_form': genre_change_form,
+        'entry_details': entry_details
     })
