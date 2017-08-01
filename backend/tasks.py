@@ -6,7 +6,7 @@ from .file_managers import blind_media_move, remove_empty_dirs, recursive_extrac
 
 # This sets up a celery periodic task that runs the check_watched_dir as below
 app.conf.beat_schedule['watch_dir'] = {
-        'task': 'mfo.tasks.check_watched_dir',
+        'task': 'backend.tasks.check_watched_dir',
         'schedule': 5.0
     }
 

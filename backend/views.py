@@ -196,7 +196,7 @@ def index(request):
             handle_uploaded_file(file_list)
     else:
         upload_form = UploadForm()
-    return render(request, 'mfo/index.html', {
+    return render(request, 'backend/index.html', {
         'upload_form': upload_form
     })
 
@@ -238,7 +238,7 @@ def entry_view(request):
         entry_details['Title'] = movie_object.title
         entry_details['Genre'] = movie_object.genre.genre
 
-    return render(request, 'mfo/entry_view.html', {
+    return render(request, 'backend/entry_view.html', {
         'upload_form': upload_form,
         'genre_change_form': genre_change_form,
         'entry_details': entry_details

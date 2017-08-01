@@ -30,7 +30,7 @@ class TestCheckExtension(TestCase):
 class TestRecursiveExtractFiles(TestCase):
     def test_recursive_extract_files(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         if not os.path.isdir(test_dir):
             os.mkdir(test_dir)
 
@@ -73,7 +73,7 @@ class TestRecursiveExtractFiles(TestCase):
 class TestRemoveEmptyDirs(TestCase):
     def test_remove_empty_dirs(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         if not os.path.isdir(test_dir):
             os.mkdir(test_dir)
 
@@ -114,7 +114,7 @@ class TestRemoveEmptyDirs(TestCase):
 class TestMoveMovie(TestCase):
     def test_move_movie(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
@@ -157,7 +157,7 @@ class TestMoveMovie(TestCase):
 class TestMoveNewTvShow(TestCase):
     def test_move_new_tv_show(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
@@ -186,7 +186,7 @@ class TestMoveNewTvShow(TestCase):
 class TestMoveExistingTvShow(TestCase):
     def test_move_existing_tv_show(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
@@ -237,7 +237,7 @@ class TestMoveExistingTvShow(TestCase):
 class TestBlindMediaMove(TestCase):
     def test_blind_media_move(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         os.mkdir(test_dir)
 
         # Create Genre's specifically for testing
@@ -283,7 +283,7 @@ class TestBlindMediaMove(TestCase):
 class TestChangeGenre(TestCase):
     def test_change_genre(self):
         # Create a dir for tests
-        test_dir = os.path.join(BASE_DIR, 'mfo', 'test_dir')
+        test_dir = os.path.join(BASE_DIR, 'backend', 'test_dir')
         os.mkdir(test_dir)
 
         # Create Genre's specifically for testing

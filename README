@@ -45,10 +45,10 @@ A message broker needs to be installed, this is set up for rabbitmq, please see
 https://www.rabbitmq.com/ for installation instructions
 
 Set the directories to be used by VideoOrganiser by setting the directories in
-mfo.config.
+backend.config.
 
-If you wish to modify the genre's used add or remove instances in mfo.fixtures.initial_genre.json,
-making sure to keep the same format.
+If you wish to modify the genre's used add or remove instances in
+backend.fixtures.initial_genre.json, making sure to keep the same format.
 
 Set up the database with
 

@@ -1,69 +1,69 @@
 [
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 1,
     "fields": {
       "genre": "Action"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 2,
     "fields": {
       "genre": "Adventure"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 3,
     "fields": {
       "genre": "Animation"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 4,
     "fields": {
       "genre": "Comedy"
     }
   },
    {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 5,
     "fields": {
       "genre": "Crime"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 6,
     "fields": {
       "genre": "Drama"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 7,
     "fields": {
       "genre": "Fantasy"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 8,
     "fields": {
       "genre": "Horror"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 9,
     "fields": {
       "genre": "Thriller"
     }
   },
   {
-    "model": "mfo.Genre",
+    "model": "backend.Genre",
     "pk": 10,
     "fields": {
       "genre": "Sci-Fi"

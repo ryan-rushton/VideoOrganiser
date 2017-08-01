@@ -18,16 +18,18 @@ function get_file_system(current_dir){
     current_dir = "?new_dir="+current_dir;
     $.getJSON("http://localhost:8000/ajax/load_file_system/"+current_dir,
         function (data) {
+            var top_line;
             $('#file_system_jumbo').text("");
             $('#file_system_list').text("");
             if(data.current_is_tvshow){
                 var string_array = data.current_dir.split("/");
                 var title = string_array[string_array.length - 1];
-                var top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +
+                top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +
                     '  <a href="entry_view?entry=' + title + '"><span class="glyphicon glyphicon-edit"></span></a></p>';
             }
             else{
-                var top_line = '<p><span class="glyphicon glyphicon-folder-open"></span>'+ data.current_dir +'</p>';
+                top_line = '<p><span class="glyphicon' +
+                    ' glyphicon-folder-open"></span> '+ data.current_dir +'</p>';
             }
             $('#file_system_jumbo').append(top_line).append('<ul class="list-group" id="file_system_list"></ul>');
             $.each(data.child_dirs, function(index, value){
@@ -46,7 +48,7 @@ function get_file_system(current_dir){
 function get_genre_func(){
     $.ajax("http://localhost:8000/ajax/get_genre/",
         {success:function build_modal(data){
-                if (data.contains_data == true){
+                if (data.contains_data === true){
                     var genre_form = data.genre_form;
                     var file_name = data.file_name;
                     var intro = 'Pick a genre for '+file_name;

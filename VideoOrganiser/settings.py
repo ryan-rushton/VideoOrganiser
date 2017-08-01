@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'mfo.apps.MfoConfig',
+    'backend.apps.BackendConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -144,7 +144,7 @@ LOGGING = {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
-        'mfo.file_managers': {
+        'backend.file_managers': {
             'handlers': ['console'],
             'filters': [],
             'propagate': True,
@@ -156,4 +156,4 @@ LOGGING = {
 # Set the Celery broker URL, in this case a RabbitMQ instance is used.
 
 CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
-CELERY_IMPORTS = ('mfo.tasks',)
+CELERY_IMPORTS = ('backend.tasks',)
